@@ -88,7 +88,7 @@ const Profile = () => {
             {/* Profile Section */}
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <button
-                    className="bg-orange-500 text-black px-4 py-2 rounded-md mb-4"
+                    className="bg-gradient-to-r from-orange-500 to-black text-white px-4 py-2 rounded-md mb-4"
                     onClick={handleEditClick}
                 >
                     Edit Profile
@@ -154,7 +154,7 @@ const Profile = () => {
 
                 {/* Update Profile Button */}
                 {isEditing && (
-                    <button className="bg-black text-black px-4 py-2 rounded-md mt-4" onClick={handleUpdateClick}>
+                    <button className="bg-gradient-to-r from-orange-500 to-black text-white px-4 py-2 rounded-md mt-4" onClick={handleUpdateClick}>
                         Update Profile
                     </button>
                 )}
@@ -211,7 +211,7 @@ const Profile = () => {
                     </div>
                 </div>
 
-                <button className="bg-black text-black px-4 py-2 rounded-md mt-4" onClick={handleChangePassword}>
+                <button className="bg-gradient-to-r from-orange-500 to-black text-white px-4 py-2 rounded-md mt-4" onClick={handleChangePassword}>
                     Change Password
                 </button>
             </div>
