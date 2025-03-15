@@ -12,57 +12,97 @@ const ManageDevice = () => {
         Platform: "EES",
     });
 
+    const [loading, setLoading] = useState(false);
+
+    // Add Device
     const addDevice = async () => {
+        if (!deviceId.trim()) {
+            alert("Device ID is required to add a device.");
+            return;
+        }
+
+        setLoading(true);
         try {
-            const response = await fetch("https://apis.enggenv.com/forwarders/hwra/addDeviceInfo/", {
+            const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/addDeviceInfo/${deviceId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ info: formData }),
+                body: JSON.stringify({ info: formData, platform: formData.Platform }),
             });
+
             const data = await response.json();
-            if (data.deviceId) {
-                setDeviceId(data.deviceId);
-                alert(`Device Added Successfully: ${data.deviceId}`);
-                await syncDevice(data.deviceId); // Auto-sync after adding
+            if (response.ok) {
+                alert(`Device ${deviceId} Added Successfully!`);
+                setDeviceId("");
+                setFormData({
+                    NOCNumber: "",
+                    Userkey: "",
+                    CompanyName: "",
+                    Latitude: "",
+                    Longitude: "",
+                    Platform: "EES",
+                });
             } else {
-                alert("Failed to add device");
+                alert(`Failed to add device: ${data.message}`);
             }
         } catch (error) {
             console.error("Error adding device:", error);
+            alert("Error adding device. Check console for details.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const syncDevice = async (id) => {
-        const syncId = id || deviceId;
-        if (!syncId) return alert("Enter Device ID to Sync");
+    // Sync Device
+    const syncDevice = async () => {
+        if (!deviceId.trim()) {
+            alert("Device ID is required for syncing.");
+            return;
+        }
+        setLoading(true);
         try {
             await fetch("https://apis.enggenv.com/forwarders/hwra/sync/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ device_id: syncId }),
+                body: JSON.stringify({ device_id: deviceId }),
             });
-            alert(`Device ${syncId} Synced Successfully!`);
+            alert(`Device ${deviceId} Synced Successfully!`);
         } catch (error) {
             console.error("Error syncing device:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Get Device Info
     const getDeviceInfo = async () => {
-        if (!deviceId) return alert("Enter Device ID to Fetch Info");
+        if (!deviceId.trim()) {
+            alert("Device ID is required to fetch device info.");
+            return;
+        }
+        setLoading(true);
         try {
             const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/getDeviceInfo/${deviceId}`);
             const data = await response.json();
             if (data && data.info) {
                 setDeviceData(data);
                 setFormData(data.info);
+            } else {
+                alert("No device info found.");
             }
         } catch (error) {
             console.error("Error fetching device info:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    // Update Device Info
     const updateDeviceInfo = async () => {
-        if (!deviceId) return alert("Device ID is required for updating");
+        if (!deviceId.trim()) {
+            alert("Device ID is required to update device info.");
+            return;
+        }
+        setLoading(true);
         try {
             const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/editDeviceInfo/${deviceId}`, {
                 method: "PUT",
@@ -74,71 +114,95 @@ const ManageDevice = () => {
                     status: "Active",
                 }),
             });
+
             if (response.ok) {
                 alert("Device Info Updated Successfully!");
             } else {
-                alert("Failed to update device");
+                alert("Failed to update device.");
             }
         } catch (error) {
             console.error("Error updating device info:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Manage Device</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">Manage Device</h2>
 
-            {/* Form Inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.keys(formData).map((key) => (
-                    <input
-                        key={key}
-                        type="text"
-                        placeholder={key}
-                        value={formData[key]}
-                        onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                        className="border p-2 rounded w-full"
-                    />
-                ))}
-            </div>
-
-            {/* Add Device (Auto Sync after Adding) */}
-            <button
-                className="mt-4 bg-gradient-to-r from-orange-500 to-black text-white py-2 px-4 rounded"
-                onClick={addDevice}
-            >
-                Add Device
-            </button>
-
-            {/* Sync Device (Separate Option) */}
-            <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-semibold">Sync Device</h3>
+            {/* Device ID Input */}
+            <div className="mb-4">
+                <label className="block mb-2 font-semibold">Device ID:</label>
                 <input
                     type="text"
                     placeholder="Enter Device ID"
                     value={deviceId}
                     onChange={(e) => setDeviceId(e.target.value)}
-                    className="border p-2 rounded w-full mt-2"
+                    className="border p-2 rounded w-full"
                 />
+            </div>
+
+            {/* Add Device Section */}
+            <div className="mb-6 border-b pb-4">
+                <h3 className="text-lg font-semibold mb-2">Add Device</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.keys(formData).map((key) =>
+                        key === "Platform" ? (
+                            <div key={key}>
+                                <label className="block mb-1 font-medium">{key}:</label>
+                                <input
+                                    type="text"
+                                    value={formData[key]}
+                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                                    className="border p-2 rounded w-full"
+                                />
+                            </div>
+                        ) : (
+                            <div key={key}>
+                                <label className="block mb-1 font-medium">{key}:</label>
+                                <input
+                                    type="text"
+                                    placeholder={`Enter ${key}`}
+                                    value={formData[key]}
+                                    onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                                    className="border p-2 rounded w-full"
+                                />
+                            </div>
+                        )
+                    )}
+                </div>
                 <button
-                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white py-2 px-4 rounded"
-                    onClick={() => syncDevice()}
+                    className="mt-4 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
+                    onClick={addDevice}
+                    disabled={loading}
                 >
-                    Sync Device
+                    {loading ? "Adding Device..." : "Add Device"}
                 </button>
             </div>
 
-            {/* Fetch Device Info */}
-            <div className="mt-6 border-t pt-4">
-                <h3 className="text-lg font-semibold">Device Info</h3>
+            {/* Sync Device */}
+            <div className="mb-6 border-b pb-4">
+                <h3 className="text-lg font-semibold mb-2">Sync Device</h3>
                 <button
-                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white py-2 px-4 rounded"
-                    onClick={getDeviceInfo}
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-orange-600 text-white py-2 px-4 rounded w-full"
+                    onClick={syncDevice}
+                    disabled={loading}
                 >
-                    Get Device Info
+                    {loading ? "Syncing..." : "Sync Device"}
                 </button>
+            </div>
 
-                {/* Show Device Data */}
+            {/* Get Device Info */}
+            <div className="mb-6 border-b pb-4">
+                <h3 className="text-lg font-semibold mb-2">Get Device Info</h3>
+                <button
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-green-700 text-white py-2 px-4 rounded w-full"
+                    onClick={getDeviceInfo}
+                    disabled={loading}
+                >
+                    {loading ? "Fetching..." : "Get Device Info"}
+                </button>
                 {deviceData && (
                     <div className="mt-4 p-4 bg-gray-100 rounded">
                         <pre className="text-sm">{JSON.stringify(deviceData, null, 2)}</pre>
@@ -146,30 +210,17 @@ const ManageDevice = () => {
                 )}
             </div>
 
-            {/* Edit Device Info (Always Visible if Device ID is Entered) */}
-            {deviceId && (
-                <div className="mt-6 border-t pt-4">
-                    <h3 className="text-lg font-semibold">Edit Device Info</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {Object.keys(formData).map((key) => (
-                            <input
-                                key={key}
-                                type="text"
-                                placeholder={key}
-                                value={formData[key]}
-                                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                                className="border p-2 rounded w-full"
-                            />
-                        ))}
-                    </div>
-                    <button
-                        className="mt-4 bg-gradient-to-r from-orange-500 to-black text-white py-2 px-4 rounded"
-                        onClick={updateDeviceInfo}
-                    >
-                        Update Device
-                    </button>
-                </div>
-            )}
+            {/* Update Device Info */}
+            <div>
+                <h3 className="text-lg font-semibold mb-2">Update Device Info</h3>
+                <button
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-purple-700 text-white py-2 px-4 rounded w-full"
+                    onClick={updateDeviceInfo}
+                    disabled={loading}
+                >
+                    {loading ? "Updating..." : "Update Device"}
+                </button>
+            </div>
         </div>
     );
 };
