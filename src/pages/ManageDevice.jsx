@@ -12,7 +12,10 @@ const ManageDevice = () => {
         Platform: "EES",
     });
 
-    const [loading, setLoading] = useState(false);
+    const [loadingAdd, setLoadingAdd] = useState(false);
+    const [loadingSync, setLoadingSync] = useState(false);
+    const [loadingFetch, setLoadingFetch] = useState(false);
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
 
     // Add Device
     const addDevice = async () => {
@@ -21,7 +24,7 @@ const ManageDevice = () => {
             return;
         }
 
-        setLoading(true);
+        setLoadingAdd(true);
         try {
             const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/addDeviceInfo/${deviceId}`, {
                 method: "POST",
@@ -48,7 +51,7 @@ const ManageDevice = () => {
             console.error("Error adding device:", error);
             alert("Error adding device. Check console for details.");
         } finally {
-            setLoading(false);
+            setLoadingAdd(false);
         }
     };
 
@@ -58,7 +61,7 @@ const ManageDevice = () => {
             alert("Device ID is required for syncing.");
             return;
         }
-        setLoading(true);
+        setLoadingSync(true);
         try {
             await fetch("https://apis.enggenv.com/forwarders/hwra/sync/", {
                 method: "POST",
@@ -69,7 +72,7 @@ const ManageDevice = () => {
         } catch (error) {
             console.error("Error syncing device:", error);
         } finally {
-            setLoading(false);
+            setLoadingSync(false);
         }
     };
 
@@ -79,7 +82,7 @@ const ManageDevice = () => {
             alert("Device ID is required to fetch device info.");
             return;
         }
-        setLoading(true);
+        setLoadingFetch(true);
         try {
             const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/getDeviceInfo/${deviceId}`);
             const data = await response.json();
@@ -92,7 +95,7 @@ const ManageDevice = () => {
         } catch (error) {
             console.error("Error fetching device info:", error);
         } finally {
-            setLoading(false);
+            setLoadingFetch(false);
         }
     };
 
@@ -102,7 +105,7 @@ const ManageDevice = () => {
             alert("Device ID is required to update device info.");
             return;
         }
-        setLoading(true);
+        setLoadingUpdate(true);
         try {
             const response = await fetch(`https://apis.enggenv.com/forwarders/hwra/editDeviceInfo/${deviceId}`, {
                 method: "PUT",
@@ -123,7 +126,7 @@ const ManageDevice = () => {
         } catch (error) {
             console.error("Error updating device info:", error);
         } finally {
-            setLoading(false);
+            setLoadingUpdate(false);
         }
     };
 
@@ -173,11 +176,11 @@ const ManageDevice = () => {
                     )}
                 </div>
                 <button
-                    className="mt-4 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
+                    className="mt-4 bg-gradient-to-r from-orange-500 to-black text-black hover:bg-blue-700 text-white py-2 px-4 rounded w-full"
                     onClick={addDevice}
-                    disabled={loading}
+                    disabled={loadingAdd}
                 >
-                    {loading ? "Adding Device..." : "Add Device"}
+                    {loadingAdd ? "Adding Device..." : "Add Device"}
                 </button>
             </div>
 
@@ -185,11 +188,11 @@ const ManageDevice = () => {
             <div className="mb-6 border-b pb-4">
                 <h3 className="text-lg font-semibold mb-2">Sync Device</h3>
                 <button
-                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-orange-600 text-white py-2 px-4 rounded w-full"
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-black hover:bg-orange-600 text-white py-2 px-4 rounded w-full"
                     onClick={syncDevice}
-                    disabled={loading}
+                    disabled={loadingSync}
                 >
-                    {loading ? "Syncing..." : "Sync Device"}
+                    {loadingSync ? "Syncing..." : "Sync Device"}
                 </button>
             </div>
 
@@ -197,11 +200,11 @@ const ManageDevice = () => {
             <div className="mb-6 border-b pb-4">
                 <h3 className="text-lg font-semibold mb-2">Get Device Info</h3>
                 <button
-                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-green-700 text-white py-2 px-4 rounded w-full"
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-black hover:bg-green-700 text-white py-2 px-4 rounded w-full"
                     onClick={getDeviceInfo}
-                    disabled={loading}
+                    disabled={loadingFetch}
                 >
-                    {loading ? "Fetching..." : "Get Device Info"}
+                    {loadingFetch ? "Fetching..." : "Get Device Info"}
                 </button>
                 {deviceData && (
                     <div className="mt-4 p-4 bg-gray-100 rounded">
@@ -214,11 +217,11 @@ const ManageDevice = () => {
             <div>
                 <h3 className="text-lg font-semibold mb-2">Update Device Info</h3>
                 <button
-                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-white hover:bg-purple-700 text-white py-2 px-4 rounded w-full"
+                    className="mt-2 bg-gradient-to-r from-orange-500 to-black text-black hover:bg-purple-700 text-white py-2 px-4 rounded w-full"
                     onClick={updateDeviceInfo}
-                    disabled={loading}
+                    disabled={loadingUpdate}
                 >
-                    {loading ? "Updating..." : "Update Device"}
+                    {loadingUpdate ? "Updating..." : "Update Device"}
                 </button>
             </div>
         </div>

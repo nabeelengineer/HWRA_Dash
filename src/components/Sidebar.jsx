@@ -7,7 +7,7 @@ const SidebarContext = createContext();
 
 export default function Sidebar({ expanded, setExpanded }) {
     return (
-        <aside className={`h-screen ${expanded ? "w-64" : "w-16"} fixed left-0 top-0 bg-gray-300 border-r shadow-sm transition-all duration-300 flex flex-col`}>
+        <aside className={`h-screen ${expanded ? "w-64" : "w-16"} fixed left-0 top-0 bg-gray-400 border-r shadow-sm transition-all duration-300 flex flex-col`}>
 
             {/* Header: Logo & Toggle Button */}
             <div className="flex items-center justify-between px-4 py-3">

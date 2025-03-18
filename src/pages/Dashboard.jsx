@@ -1,6 +1,35 @@
+import * as React from 'react';
 import { useState, useEffect } from "react";
+import { styled } from '@mui/material/styles';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import { Button, TextField } from '@mui/material';
 
-const DeviceDashboard = () => {
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    [`&.${tableCellClasses.head}`]: {
+        backgroundColor: theme.palette.common.black,
+        color: theme.palette.common.white,
+    },
+    [`&.${tableCellClasses.body}`]: {
+        fontSize: 14,
+    },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+    '&:nth-of-type(odd)': {
+        backgroundColor: theme.palette.action.hover,
+    },
+    '&:last-child td, &:last-child th': {
+        border: 0,
+    },
+}));
+
+export default function DeviceDashboard() {
     const [devices, setDevices] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -14,9 +43,10 @@ const DeviceDashboard = () => {
         try {
             const response = await fetch("https://apis.enggenv.com/forwarders/hwra/getAllDeviceInfo");
             const data = await response.json();
-            setDevices(data);
+            setDevices(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error fetching devices:", error);
+            setDevices([]);
         }
     };
 
@@ -25,93 +55,84 @@ const DeviceDashboard = () => {
         device.info.CompanyName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Pagination Logic
     const indexOfLastDevice = currentPage * devicesPerPage;
     const indexOfFirstDevice = indexOfLastDevice - devicesPerPage;
     const currentDevices = filteredDevices.slice(indexOfFirstDevice, indexOfLastDevice);
     const totalPages = Math.ceil(filteredDevices.length / devicesPerPage);
 
     return (
-        <div className="p-6 max-w-6xl mx-auto bg-white shadow-md rounded-lg">
-            {/* Header with Dashboard Title and Search Bar */}
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">📊 Device Dashboard</h2>
-                <input
-                    type="text"
-                    placeholder="🔍 Search..."
+        <TableContainer component={Paper} sx={{ padding: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <h2>📊 Device Dashboard</h2>
+                <TextField
+                    label="Search..."
+                    variant="outlined"
+                    size="small"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border p-2 rounded w-64"
                 />
             </div>
-
-            {/* Device Table */}
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-300">
-                    <thead className="bg-gray-200">
-                        <tr>
-                            <th className="border px-4 py-2">S. No.</th>
-                            <th className="border px-4 py-2">Device ID</th>
-                            <th className="border px-4 py-2">Company Name</th>
-                            <th className="border px-4 py-2">NOC Number</th>
-                            <th className="border px-4 py-2">User Key</th>
-                            <th className="border px-4 py-2">Last Sync</th>
-                            <th className="border px-4 py-2">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentDevices.length > 0 ? (
-                            currentDevices.map((device, index) => (
-                                <tr key={device.deviceId} className="text-center">
-                                    <td className="border px-4 py-2">{indexOfFirstDevice + index + 1}</td>
-                                    <td className="border px-4 py-2">{device.deviceId}</td>
-                                    <td className="border px-4 py-2">{device.info.CompanyName}</td>
-                                    <td className="border px-4 py-2">{device.info.NOCNumber}</td>
-                                    <td className="border px-4 py-2">{device.info.Userkey}</td>
-                                    <td className="border px-4 py-2">{new Date(device.LastSync).toLocaleString()}</td>
-                                    <td className="border px-4 py-2">
-                                        <span
-                                            className={`px-2 py-1 rounded text-white ${device.status === "Active" ? "bg-green-500" : "bg-red-500"
-                                                }`}
-                                        >
-                                            {device.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="7" className="text-center py-4 text-gray-500">
-                                    No devices found.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="flex justify-between items-center mt-4">
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                <TableHead>
+                    <TableRow>
+                        <StyledTableCell>S.No.</StyledTableCell>
+                        <StyledTableCell align="center">Device ID</StyledTableCell>
+                        <StyledTableCell align="center">Company Name</StyledTableCell>
+                        <StyledTableCell align="center">NOC Number</StyledTableCell>
+                        <StyledTableCell align="center">User Key</StyledTableCell>
+                        <StyledTableCell align="center">Last Sync</StyledTableCell>
+                        <StyledTableCell align="center">Status</StyledTableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {currentDevices.length > 0 ? (
+                        currentDevices.map((device, index) => (
+                            <StyledTableRow key={device.deviceId}>
+                                <StyledTableCell>{indexOfFirstDevice + index + 1}</StyledTableCell>
+                                <StyledTableCell align="center">{device.deviceId}</StyledTableCell>
+                                <StyledTableCell align="center">{device.info.CompanyName}</StyledTableCell>
+                                <StyledTableCell align="center">{device.info.NOCNumber}</StyledTableCell>
+                                <StyledTableCell align="center" style={{ width: "150px" }}>{String(device.info.Userkey).trim()}</StyledTableCell>
+                                <StyledTableCell align="center">{new Date(device.LastSync).toLocaleDateString("en-GB")} 
+                                    {" "}
+                                    {new Date(device.LastSync).toLocaleTimeString("en-GB", { hour12: false })} (
+                                    {new Date(device.LastSync).toLocaleTimeString("en-US", { hour12: true }).split(" ")[1]})</StyledTableCell>
+                                <StyledTableCell align="center">
+                                    <span style={{
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        color: 'white',
+                                        backgroundColor: device.status === "Active" ? "green" : "red"
+                                    }}>
+                                        {device.status}
+                                    </span>
+                                </StyledTableCell>
+                            </StyledTableRow>
+                        ))
+                    ) : (
+                        <StyledTableRow>
+                            <StyledTableCell colSpan={7} align="center">No devices found.</StyledTableCell>
+                        </StyledTableRow>
+                    )}
+                </TableBody>
+            </Table>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
+                <Button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-black text-white rounded disabled:bg-gray-400"
+                    variant="contained"
                 >
                     ◀ Previous
-                </button>
-                <span className="text-lg font-semibold">
-                    Page {currentPage} of {totalPages}
-                </span>
-                <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                </Button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <Button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-black text-white rounded disabled:bg-gray-400"
+                    variant="contained"
                 >
                     Next ▶
-                </button>
+                </Button>
             </div>
-        </div>
+        </TableContainer>
     );
-};
-
-export default DeviceDashboard;
+}
